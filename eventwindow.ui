@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EventWindow</class>
+ <widget class="QWidget" name="EventWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>641</width>
+    <height>355</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Veranstaltung erzeugen</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="ressourcen.qrc">
+    <normaloff>:/ico/obelus.ico</normaloff>:/ico/obelus.ico</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_eventName">
+          <property name="text">
+           <string>Veranstaltungsname:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_eventName"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_countPlaygrounds">
+          <property name="text">
+           <string>Anzahl Bahnen:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_countPassages">
+          <property name="text">
+           <string>Anzahl Durchgänge:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_countTeams">
+          <property name="text">
+           <string>Anzahl Teams:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="spinBox_countPlaygrounds">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QSpinBox" name="spinBox_countPassages">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QSpinBox" name="spinBox_countTeams">
+          <property name="minimum">
+           <number>2</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_host">
+          <property name="text">
+           <string>Veranstalter:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_host"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_exec">
+          <property name="text">
+           <string>Durchführer:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_exec"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_location">
+          <property name="text">
+           <string>Austragungsort:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_location"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_dateAndTime">
+          <property name="text">
+           <string>Datum:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDateTimeEdit" name="dateTimeEdit_dateAndTime">
+          <property name="dateTime">
+           <datetime>
+            <hour>0</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2020</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_type">
+          <property name="text">
+           <string>Wettbewerbsart:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QComboBox" name="comboBox_type"/>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_class">
+          <property name="text">
+           <string>Spielklasse:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QComboBox" name="comboBox_class"/>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_leader">
+          <property name="text">
+           <string>Wettbewerbsleiter:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="lineEdit_leader"/>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_referee">
+          <property name="text">
+           <string>Schiedsrichter:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lineEdit_referee"/>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_secretary">
+          <property name="text">
+           <string>Schriftführer:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="lineEdit_secretary"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="commandLinkButton_create">
+     <property name="text">
+      <string>Veranstaltung erstellen ...</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="ressourcen.qrc"/>
+ </resources>
+ <connections/>
+</ui>
