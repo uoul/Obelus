@@ -20,7 +20,13 @@ public:
 private slots:
     void updateEventSelection();
 
+    void onEventSelectionChanged();
+
+    void onEventTeamNameChanged();
+
     void updateEventOverview();
+
+    void updateEventTeamView();
 
     void on_actionRules_triggered();
 

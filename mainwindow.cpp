@@ -8,6 +8,8 @@
 #include <QApplication>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QTableWidgetItem>
+#include <QTableWidget>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,8 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // connect signals & slots
     connect(eventWindow,SIGNAL(eventCreated()),this,SLOT(updateEventSelection()));
-    connect(ui->listWidget_eventSelection,SIGNAL(itemSelectionChanged()),this,SLOT(updateEventOverview()));
-
+    connect(ui->listWidget_eventSelection,SIGNAL(itemSelectionChanged()),this,SLOT(onEventSelectionChanged()));
+    connect(ui->tableWidget_teamConfig,SIGNAL(itemChanged(QTableWidgetItem *)),this,SLOT(onEventTeamNameChanged()));
 }
 
 MainWindow::~MainWindow()
@@ -97,6 +99,60 @@ void MainWindow::updateEventOverview()
         ui->lineEdit_Overview_leader->clear();
         ui->lineEdit_Overview_referee->clear();
         ui->lineEdit_Overview_secretary->clear();
+    }
+}
+
+void MainWindow::onEventSelectionChanged()
+{
+    // Call all update functions
+    updateEventOverview();
+    updateEventTeamView();
+}
+
+void MainWindow::updateEventTeamView()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Fetch Date of the selected event
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString selectedEvent = ui->listWidget_eventSelection->currentItem()->text();
+
+    QSqlQuery query;
+    query.exec(tr("SELECT tid,team_name FROM teams WHERE event_name='%1'").arg(selectedEvent));
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Update UI
+    //-------------------------------------------------------------------------------------------------------------------------------
+    ui->tableWidget_teamConfig->setRowCount(0);
+    while (query.next()) {
+        // Append new row
+        ui->tableWidget_teamConfig->insertRow(ui->tableWidget_teamConfig->rowCount());
+
+        // Set Column ID
+        QTableWidgetItem *item = new QTableWidgetItem();
+        item->setFlags(Qt::ItemIsEditable);
+        item->setText(query.value(0).toString());
+
+        ui->tableWidget_teamConfig->setItem(ui->tableWidget_teamConfig->rowCount() - 1, 0, item);
+
+        // Set Column Name
+        ui->tableWidget_teamConfig->setItem(ui->tableWidget_teamConfig->rowCount() - 1, 1, new QTableWidgetItem(query.value(1).toString()));
+    }
+}
+
+void MainWindow::onEventTeamNameChanged()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save Changed Item in Database
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->tableWidget_teamConfig->currentColumn() >= 0 && ui->tableWidget_teamConfig->currentRow() >= 0){
+        int currentRow = ui->tableWidget_teamConfig->currentRow();
+
+        QString eventName = ui->listWidget_eventSelection->currentItem()->text();
+        QString tid = ui->tableWidget_teamConfig->item(currentRow,0)->text();
+        QString teamName = ui->tableWidget_teamConfig->item(currentRow,1)->text();
+
+        QSqlQuery query;
+        query.exec(tr("UPDATE teams SET team_name='%1' WHERE tid='%2' AND event_name='%3'").arg(teamName, tid, eventName));
     }
 }
 

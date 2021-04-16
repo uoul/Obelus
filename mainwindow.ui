@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1227</width>
+    <width>1201</width>
     <height>689</height>
    </rect>
   </property>
@@ -72,7 +72,7 @@
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_eventInfo">
        <attribute name="title">
@@ -412,6 +412,28 @@
        <attribute name="title">
         <string>Teams</string>
        </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QTableWidget" name="tableWidget_teamConfig">
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>TeamID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Team Name</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_results">
        <attribute name="title">
@@ -439,7 +461,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_mainPassage">
                 <property name="text">
-                 <string>Hautpdruchgang:</string>
+                 <string>Hauptdruchgang:</string>
                 </property>
                </widget>
               </item>
@@ -476,17 +498,17 @@
         </item>
         <item>
          <widget class="QTableWidget" name="tableWidget">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
           <property name="sortingEnabled">
            <bool>false</bool>
           </property>
           <property name="cornerButtonEnabled">
            <bool>false</bool>
           </property>
-          <attribute name="horizontalHeaderCascadingSectionResizes">
-           <bool>false</bool>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>false</bool>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>100</number>
           </attribute>
           <attribute name="verticalHeaderCascadingSectionResizes">
            <bool>false</bool>
@@ -497,11 +519,11 @@
           <attribute name="verticalHeaderStretchLastSection">
            <bool>false</bool>
           </attribute>
-          <row>
+          <column>
            <property name="text">
-            <string>Neue Zeile</string>
+            <string>ID 1</string>
            </property>
-          </row>
+          </column>
           <column>
            <property name="text">
             <string>Team 1</string>
@@ -509,7 +531,17 @@
           </column>
           <column>
            <property name="text">
-            <string>Team 1 Punkte</string>
+            <string>Punkte 1</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Strafe 1</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>ID 2</string>
            </property>
           </column>
           <column>
@@ -519,41 +551,14 @@
           </column>
           <column>
            <property name="text">
-            <string>Team 2 Punkte</string>
+            <string>Punkte 2</string>
            </property>
           </column>
-          <item row="0" column="0">
+          <column>
            <property name="text">
-            <string/>
+            <string>Strafe 2</string>
            </property>
-           <property name="flags">
-            <set>ItemIsEnabled</set>
-           </property>
-          </item>
-          <item row="0" column="1">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="flags">
-            <set>ItemIsSelectable|ItemIsEditable|ItemIsUserCheckable|ItemIsEnabled</set>
-           </property>
-          </item>
-          <item row="0" column="2">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="flags">
-            <set>ItemIsEnabled</set>
-           </property>
-          </item>
-          <item row="0" column="3">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="flags">
-            <set>ItemIsSelectable|ItemIsEditable|ItemIsUserCheckable|ItemIsEnabled</set>
-           </property>
-          </item>
+          </column>
          </widget>
         </item>
        </layout>
@@ -572,8 +577,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1227</width>
-     <height>20</height>
+     <width>1201</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDatei">

@@ -119,23 +119,25 @@ void EventWindow::on_commandLinkButton_create_clicked()
         s.resetIterator();
         QPair<int,int> currentMatch = s.getNextMatch();
         int pg = 1;
+        int tpassage = 1;
 
         while (currentMatch != QPair<int,int>(0,0)) {
             // set current values
             tid1 = QString::number(currentMatch.first);
             tid2 = QString::number(currentMatch.second);
+            passage = QString::number(tpassage);
             playground = QString::number(pg);
-
+            startTid = QString::number(currentMatch.first);
 
             currentMatch = s.getNextMatch();
             pg++;
             if(pg > ui->spinBox_countPlaygrounds->value()){
                 pg = 1;
+                tpassage++;
             }
+            query.exec(tr("INSERT INTO matches (event_name,main_passage,tid_1,tid_2,passage,playground,start_tid,penalty_t1,penalty_t2,score_t1,score_t2) VALUES ('%1','%2','%3','%4','%5','%6','%7','%8','%9','%10','%11')").arg(event_name,mainPassage,tid1,tid2,passage,playground,startTid,penaltyT1,penaltyT2,scoreT1,scoreT2));
         }
     }
-
-    query.exec(tr("INSERT INTO matches (event_name,main_passage,tid_1,tid_2,passage,playground,start_tid,penalty_t1,penalty_t2,score_t1,score_t2) VALUES ('%1','%2','%3','%4','%5','%6','%7','%8','%9','%10','%11')").arg(event_name,mainPassage,tid1,tid2,passage,playground,startTid,penaltyT1,penaltyT2,scoreT1,scoreT2));
 
     emit eventCreated();
     this->initUi();
