@@ -270,6 +270,7 @@ void MainWindow::onEventTeamNameChanged()
         QSqlQuery query;
         query.exec(tr("UPDATE teams SET team_name='%1' WHERE tid='%2' AND event_name='%3'").arg(teamName, tid, eventName));
     }
+    updateResultTable();
 }
 
 void MainWindow::updateEventTeamView()
@@ -414,7 +415,7 @@ void MainWindow::updateResultTable()
         QSqlQuery queryTeams;
 
         // Name Team 1
-        queryTeams.exec(tr("SELECT team_name FORM teams WHERE event_name='%1' AND tid='%2'").arg(eventName,queryMatch.value(0).toString()));
+        queryTeams.exec(tr("SELECT team_name FROM teams WHERE event_name='%1' AND tid='%2'").arg(eventName,queryMatch.value(0).toString()));
         if(queryTeams.next()){
             QTableWidgetItem *itemT1Name = new QTableWidgetItem();
             itemT1Name->setFlags(Qt::ItemIsEditable);
@@ -422,7 +423,7 @@ void MainWindow::updateResultTable()
             ui->tableWidget_inputResults->setItem(currentRow,2, itemT1Name);
         }
         // Name Team 2
-        queryTeams.exec(tr("SELECT team_name FORM teams WHERE event_name='%1' AND tid='%2'").arg(eventName,queryMatch.value(1).toString()));
+        queryTeams.exec(tr("SELECT team_name FROM teams WHERE event_name='%1' AND tid='%2'").arg(eventName,queryMatch.value(1).toString()));
         if(queryTeams.next()){
             QTableWidgetItem *itemT1Name = new QTableWidgetItem();
             itemT1Name->setFlags(Qt::ItemIsEditable);
@@ -431,12 +432,6 @@ void MainWindow::updateResultTable()
         }
     }
 }
-
-//===============================================================================================================================
-//-------------------------------------------------------------------------------------------------------------------------------
-// Slots for Tab Outputs
-//-------------------------------------------------------------------------------------------------------------------------------
-//===============================================================================================================================
 
 void MainWindow::on_comboBox_mainPassageSelection_currentIndexChanged(int index)
 {
@@ -447,3 +442,10 @@ void MainWindow::on_comboBox_passageSelection_currentIndexChanged(int index)
 {
     updateResultTable();
 }
+
+//===============================================================================================================================
+//-------------------------------------------------------------------------------------------------------------------------------
+// Slots for Tab Outputs
+//-------------------------------------------------------------------------------------------------------------------------------
+//===============================================================================================================================
+
