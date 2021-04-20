@@ -32,6 +32,8 @@ public:
     QString static matchTypeToQstring(matchType);
 
     QString static matchClassToQString(matchClass);
+
+    bool static qStringIsNumber(const QString &s);
 };
 
 #endif // GLOBAL_H

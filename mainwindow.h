@@ -24,6 +24,8 @@ private slots:
 
     void onEventTeamNameChanged();
 
+    void onEventResultChanged();
+
     void updateEventOverview();
 
     void updateEventTeamView();

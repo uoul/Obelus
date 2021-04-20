@@ -100,3 +100,20 @@ QString Global::matchTypeToQstring(matchType mt)
 
     return out;
 }
+
+bool Global::qStringIsNumber(const QString &s)
+{
+    bool isNum = true;
+
+    if(s.isEmpty()){
+        isNum = false;
+    }else{
+        for(int i = 0; i < s.length(); i++){
+            if(!s.at(i).isDigit()){
+                isNum = false;
+                break;
+            }
+        }
+    }
+    return isNum;
+}

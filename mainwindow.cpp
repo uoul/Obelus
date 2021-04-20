@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(eventWindow,SIGNAL(eventCreated()),this,SLOT(updateEventSelection()));
     connect(ui->listWidget_eventSelection,SIGNAL(itemSelectionChanged()),this,SLOT(onEventSelectionChanged()));
     connect(ui->tableWidget_teamConfig,SIGNAL(itemChanged(QTableWidgetItem *)),this,SLOT(onEventTeamNameChanged()));
+    connect(ui->tableWidget_inputResults,SIGNAL(itemChanged(QTableWidgetItem *)),this,SLOT(onEventResultChanged()));
 }
 
 MainWindow::~MainWindow()
@@ -409,7 +410,35 @@ void MainWindow::updateResultTable()
         ui->tableWidget_inputResults->setItem(currentRow, 0, itemPg);
 
         // Set
-        ui->tableWidget_inputResults->setItem(currentRow, 4, new QTableWidgetItem(queryMatch.value(3).toString()));
+        ui->tableWidget_inputResults->setItem(currentRow, 3, new QTableWidgetItem(queryMatch.value(5).toString()));     // Current score 1
+        ui->tableWidget_inputResults->setItem(currentRow, 4, new QTableWidgetItem(queryMatch.value(3).toString()));     // Current penalty 1
+        ui->tableWidget_inputResults->setItem(currentRow, 7, new QTableWidgetItem(queryMatch.value(6).toString()));     // Current score 2
+        ui->tableWidget_inputResults->setItem(currentRow, 8, new QTableWidgetItem(queryMatch.value(4).toString()));     // Current penalty 2
+
+        // Set CellColor
+        if(ui->tableWidget_inputResults->item(currentRow, 3)->text().isEmpty()){
+            ui->tableWidget_inputResults->item(currentRow, 3)->setBackground(Qt::white);
+        }else{
+            ui->tableWidget_inputResults->item(currentRow, 3)->setBackground(Qt::green);
+        }
+
+        if(ui->tableWidget_inputResults->item(currentRow, 4)->text().isEmpty()){
+            ui->tableWidget_inputResults->item(currentRow, 4)->setBackground(Qt::white);
+        }else{
+            ui->tableWidget_inputResults->item(currentRow, 4)->setBackground(Qt::yellow);
+        }
+
+        if(ui->tableWidget_inputResults->item(currentRow, 7)->text().isEmpty()){
+            ui->tableWidget_inputResults->item(currentRow, 7)->setBackground(Qt::white);
+        }else{
+            ui->tableWidget_inputResults->item(currentRow, 7)->setBackground(Qt::green);
+        }
+
+        if(ui->tableWidget_inputResults->item(currentRow, 8)->text().isEmpty()){
+            ui->tableWidget_inputResults->item(currentRow, 8)->setBackground(Qt::white);
+        }else{
+            ui->tableWidget_inputResults->item(currentRow, 8)->setBackground(Qt::yellow);
+        }
 
         // Set Team name
         QSqlQuery queryTeams;
@@ -429,6 +458,61 @@ void MainWindow::updateResultTable()
             itemT1Name->setFlags(Qt::ItemIsEditable);
             itemT1Name->setText(queryTeams.value(0).toString());
             ui->tableWidget_inputResults->setItem(currentRow,6, itemT1Name);
+        }
+    }
+}
+
+void MainWindow::onEventResultChanged()
+{
+    int currentCol = ui->tableWidget_inputResults->currentColumn();
+    int currentRow = ui->tableWidget_inputResults->currentRow();
+    QSqlQuery query;
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save Changes
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(currentCol >= 0 && currentRow >= 0){
+        QString eventName = ui->listWidget_eventSelection->currentItem()->text();
+        QString mainPassage = ui->comboBox_mainPassageSelection->currentText();
+        QString passage = ui->comboBox_passageSelection->currentText();
+        QString playGround = ui->tableWidget_inputResults->item(currentRow, 0)->text();
+        QString currentCellValue = ui->tableWidget_inputResults->item(currentRow, currentCol)->text();
+
+        if(Global::qStringIsNumber(ui->tableWidget_inputResults->item(currentRow, currentCol)->text()) || currentCellValue.isEmpty()){
+            if(currentCol == 3){            // score 1 changed
+                query.exec(tr("UPDATE matches SET score_t1='%1' WHERE event_name='%2' AND main_passage='%3' AND passage='%4' AND playground='%5'").arg(currentCellValue,eventName,mainPassage,passage,playGround));
+                if(!currentCellValue.isEmpty()){
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::green);
+                }else{
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::white);
+                }
+            }else if (currentCol == 4) {    // penalty 1 changed
+                query.exec(tr("UPDATE matches SET penalty_t1='%1' WHERE event_name='%2' AND main_passage='%3' AND passage='%4' AND playground='%5'").arg(currentCellValue,eventName,mainPassage,passage,playGround));
+                if(currentCellValue.toInt() != 0){
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::yellow);
+                }else{
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setText("");
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::white);
+                }
+            }else if (currentCol == 7){     // score 2 changed
+                query.exec(tr("UPDATE matches SET score_t2='%1' WHERE event_name='%2' AND main_passage='%3' AND passage='%4' AND playground='%5'").arg(currentCellValue,eventName,mainPassage,passage,playGround));
+                if(!currentCellValue.isEmpty()){
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::green);
+                }else{
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::white);
+                }
+            }else if (currentCol == 8) {    // penalty 2 changed
+                query.exec(tr("UPDATE matches SET penalty_t2='%1' WHERE event_name='%2' AND main_passage='%3' AND passage='%4' AND playground='%5'").arg(currentCellValue,eventName,mainPassage,passage,playGround));
+                if(currentCellValue.toInt() != 0){
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::yellow);
+                }else{
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setText("");
+                    ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::white);
+                }
+            }
+        }else{
+            ui->tableWidget_inputResults->item(currentRow, currentCol)->setText("");
+            ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::white);
         }
     }
 }
