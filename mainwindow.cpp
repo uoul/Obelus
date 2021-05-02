@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "global.h"
+#include "mytemplate.h"
 
 #include <QDesktopServices>
 #include <QUrl>
@@ -519,11 +520,17 @@ void MainWindow::onEventResultChanged()
 
 void MainWindow::on_comboBox_mainPassageSelection_currentIndexChanged(int index)
 {
+    int *i = new int;
+    *i = index;
+    delete i;
     updateResultTable();
 }
 
 void MainWindow::on_comboBox_passageSelection_currentIndexChanged(int index)
 {
+    int *i = new int;
+    *i = index;
+    delete i;
     updateResultTable();
 }
 
@@ -532,4 +539,96 @@ void MainWindow::on_comboBox_passageSelection_currentIndexChanged(int index)
 // Slots for Tab Outputs
 //-------------------------------------------------------------------------------------------------------------------------------
 //===============================================================================================================================
+void MainWindow::createIntermediateResult()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Init.
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString currentEvent = ui->listWidget_eventSelection->currentItem()->text();
 
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Delete existing Result
+    //-------------------------------------------------------------------------------------------------------------------------------
+}
+
+void MainWindow::createIntermediateResultHtml()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->listWidget_eventSelection->currentItem()->text().isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Update Result
+    //-------------------------------------------------------------------------------------------------------------------------------
+    createIntermediateResult();
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Create HTML Rows
+    //-------------------------------------------------------------------------------------------------------------------------------
+    MyTemplate rowTemplate("<tr><td>{rank}</td><td>{teamName}</td><td>{matchPointsWon}:{matchPointsLost}</td><td>{pointsWon}:{pointsLost}</td><td>{quota}</td></tr>");
+    QString rowsHtml = "";
+    QSqlQuery query;
+
+    query.exec(tr("SELECT team_name,rank,match_points_won,match_points_lost,points_won,points_lost,quota FROM teams WHERE event_name='%1' ORDER BY rank").arg(ui->listWidget_eventSelection->currentItem()->text()));
+
+    while(query.next()){
+        QString teamName = query.value(0).toString();
+        QString rank = query.value(1).toString();
+        QString matchPointsWon = query.value(2).toString();
+        QString matchPointsLost = query.value(3).toString();
+        QString pointsWon = query.value(4).toString();
+        QString pointsLost = query.value(5).toString();
+        QString quota = query.value(6).toString();
+
+        QHash<QString,QString> h;
+
+        h.insert("{teamName}", teamName);
+        h.insert("{rank}", rank);
+        h.insert("{matchPointsWon}", matchPointsWon);
+        h.insert("{matchPointsLost}", matchPointsLost);
+        h.insert("{pointsWon}", pointsWon);
+        h.insert("{pointsLost}", pointsLost);
+        h.insert("{quota}", quota);
+
+        rowsHtml = rowsHtml + rowTemplate.render(h);
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Read Template
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QFile f(":/intermediateResult/Template/IntermediatResultTableTemplate.html");
+    if(!f.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+
+    QString tableTemplate = f.readAll();
+
+    MyTemplate intermediateResultTableTemplate(tableTemplate);
+
+    QFile file("IntermediatResult.html");
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+            return;
+    }
+
+    QTextStream out(&file);
+
+    QHash<QString,QString> h;
+    h.insert("{tableRows}",rowsHtml);
+
+    out << intermediateResultTableTemplate.render(h);
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Create HTML
+    //-------------------------------------------------------------------------------------------------------------------------------
+}
+
+void MainWindow::on_pushButton_showIntermediateResult_clicked()
+{
+    createIntermediateResultHtml();
+    QDesktopServices::openUrl(QUrl("IntermediatResult.html"));
+}

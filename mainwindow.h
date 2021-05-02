@@ -20,6 +20,10 @@ public:
 private slots:
     void updateEventSelection();
 
+    void createIntermediateResult();
+
+    void createIntermediateResultHtml();
+
     void onEventSelectionChanged();
 
     void onEventTeamNameChanged();
@@ -61,6 +65,8 @@ private slots:
     void on_comboBox_mainPassageSelection_currentIndexChanged(int index);
 
     void on_comboBox_passageSelection_currentIndexChanged(int index);
+
+    void on_pushButton_showIntermediateResult_clicked();
 
 private:
     Ui::MainWindow *ui;
