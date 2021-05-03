@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // start init. functions
     updateEventSelection();
+    initIntermediateResultDir();
 
     // connect signals & slots
     connect(eventWindow,SIGNAL(eventCreated()),this,SLOT(updateEventSelection()));
@@ -42,8 +43,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    // Delete stuff on heap
     delete ui;
     delete eventWindow;
+
+    // init Temp. Dir
+    initIntermediateResultDir();
 }
 
 //===============================================================================================================================
@@ -121,6 +126,15 @@ void MainWindow::onEventSelectionChanged()
     updateEventTeamView();
     updateMainPassageSelection();
     updatePassageSelection();
+}
+
+void MainWindow::initIntermediateResultDir()
+{
+    qDebug() << QDir::currentPath();
+    QDir d(QDir::currentPath() + "/IntermediateResults");
+
+    d.removeRecursively();
+    d.mkdir(QDir::currentPath() + "/IntermediateResults");
 }
 
 //===============================================================================================================================
@@ -273,6 +287,7 @@ void MainWindow::onEventTeamNameChanged()
         query.exec(tr("UPDATE teams SET team_name='%1' WHERE tid='%2' AND event_name='%3'").arg(teamName, tid, eventName));
     }
     updateResultTable();
+    createIntermediateResultHtml();
 }
 
 void MainWindow::updateEventTeamView()
@@ -515,6 +530,7 @@ void MainWindow::onEventResultChanged()
             ui->tableWidget_inputResults->item(currentRow, currentCol)->setText("");
             ui->tableWidget_inputResults->item(currentRow, currentCol)->setBackground(Qt::white);
         }
+        createIntermediateResultHtml();
     }
 }
 
@@ -545,14 +561,33 @@ void MainWindow::createIntermediateResult()
     // Init.
     //-------------------------------------------------------------------------------------------------------------------------------
     QString currentEvent = ui->listWidget_eventSelection->currentItem()->text();
+    QSqlQuery query;
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(currentEvent.isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
 
     //-------------------------------------------------------------------------------------------------------------------------------
     // Delete existing Result
+    //-------------------------------------------------------------------------------------------------------------------------------
+    query.exec(tr("UPDATE teams SET rank=NULL,match_points_won=NULL,match_points_lost=NULL,points_won=NULL,points_lost=NULL,quota=NULL WHERE event_name='%1'").arg(currentEvent));
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Calculate new scores
     //-------------------------------------------------------------------------------------------------------------------------------
 }
 
 void MainWindow::createIntermediateResultHtml()
 {
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // init.
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString selectedEvent = ui->listWidget_eventSelection->currentItem()->text();
+
     //-------------------------------------------------------------------------------------------------------------------------------
     // Check validity
     //-------------------------------------------------------------------------------------------------------------------------------
@@ -573,7 +608,7 @@ void MainWindow::createIntermediateResultHtml()
     QString rowsHtml = "";
     QSqlQuery query;
 
-    query.exec(tr("SELECT team_name,rank,match_points_won,match_points_lost,points_won,points_lost,quota FROM teams WHERE event_name='%1' ORDER BY rank").arg(ui->listWidget_eventSelection->currentItem()->text()));
+    query.exec(tr("SELECT team_name,rank,match_points_won,match_points_lost,points_won,points_lost,quota FROM teams WHERE event_name='%1' ORDER BY rank").arg(selectedEvent));
 
     while(query.next()){
         QString teamName = query.value(0).toString();
@@ -607,9 +642,15 @@ void MainWindow::createIntermediateResultHtml()
 
     QString tableTemplate = f.readAll();
 
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Create HTML
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString fileName = selectedEvent;
+    fileName.replace(" ", "");
+
     MyTemplate intermediateResultTableTemplate(tableTemplate);
 
-    QFile file("IntermediatResult.html");
+    QFile file(QDir::currentPath() + "/IntermediateResults/" + fileName + ".html");
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
             return;
@@ -618,17 +659,14 @@ void MainWindow::createIntermediateResultHtml()
     QTextStream out(&file);
 
     QHash<QString,QString> h;
+    h.insert("{eventName}",selectedEvent);
     h.insert("{tableRows}",rowsHtml);
 
-    out << intermediateResultTableTemplate.render(h);
-
-    //-------------------------------------------------------------------------------------------------------------------------------
-    // Create HTML
-    //-------------------------------------------------------------------------------------------------------------------------------
+    out << intermediateResultTableTemplate.render(h); 
 }
 
 void MainWindow::on_pushButton_showIntermediateResult_clicked()
 {
     createIntermediateResultHtml();
-    QDesktopServices::openUrl(QUrl("IntermediatResult.html"));
+    QDesktopServices::openUrl(QUrl(QDir::currentPath() + "/IntermediateResults/" + ui->listWidget_eventSelection->currentItem()->text().replace(" ","") + ".html"));
 }

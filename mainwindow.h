@@ -24,6 +24,8 @@ private slots:
 
     void createIntermediateResultHtml();
 
+    void initIntermediateResultDir();
+
     void onEventSelectionChanged();
 
     void onEventTeamNameChanged();
