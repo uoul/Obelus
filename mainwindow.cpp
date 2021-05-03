@@ -130,7 +130,6 @@ void MainWindow::onEventSelectionChanged()
 
 void MainWindow::initIntermediateResultDir()
 {
-    qDebug() << QDir::currentPath();
     QDir d(QDir::currentPath() + "/IntermediateResults");
 
     d.removeRecursively();
@@ -285,9 +284,9 @@ void MainWindow::onEventTeamNameChanged()
 
         QSqlQuery query;
         query.exec(tr("UPDATE teams SET team_name='%1' WHERE tid='%2' AND event_name='%3'").arg(teamName, tid, eventName));
+        createIntermediateResultHtml();
     }
     updateResultTable();
-    createIntermediateResultHtml();
 }
 
 void MainWindow::updateEventTeamView()
@@ -572,13 +571,109 @@ void MainWindow::createIntermediateResult()
     }
 
     //-------------------------------------------------------------------------------------------------------------------------------
-    // Delete existing Result
+    // Create qHash (Hash with all teams and their score of the selected event)
     //-------------------------------------------------------------------------------------------------------------------------------
-    query.exec(tr("UPDATE teams SET rank=NULL,match_points_won=NULL,match_points_lost=NULL,points_won=NULL,points_lost=NULL,quota=NULL WHERE event_name='%1'").arg(currentEvent));
+    struct resultData {
+        int rank;
+        int matchPointsWon;
+        int matchPointsLost;
+        int pointsWon;
+        int pointsLost;
+        double quota;
+    };
+    QHash<int, resultData> result;
+
+    query.exec(tr("SELECT tid FROM teams WHERE event_name='%1'").arg(currentEvent));
+
+    while (query.next()) {
+        resultData d;
+        d.rank = 0;
+        d.matchPointsWon = 0;
+        d.matchPointsLost = 0;
+        d.pointsWon = 0;
+        d.pointsLost = 0;
+        d.quota = 0.0;
+
+        result.insert(query.value(0).toInt(), d);
+    }
 
     //-------------------------------------------------------------------------------------------------------------------------------
-    // Calculate new scores
+    // Loop over matches and count
     //-------------------------------------------------------------------------------------------------------------------------------
+    query.exec(tr("SELECT tid_1,tid_2,score_t1,score_t2,penalty_t1,penalty_t2 FROM matches WHERE event_name='%1'").arg(currentEvent));
+
+    while (query.next()) {
+        int tid1 = query.value(0).toInt();
+        int tid2 = query.value(1).toInt();
+        int scoreT1 = query.value(2).toInt();
+        int scoreT2 = query.value(3).toInt();
+        int penaltyT1 = query.value(4).toInt();
+        int penaltyT2 = query.value(5).toInt();
+        int sumT1 = scoreT1 - penaltyT1;
+        int sumT2 = scoreT2 - penaltyT2;
+
+        // Correct score if neccesary
+        if(sumT1 == 0 and sumT2 == 0){
+            continue;
+        }
+
+        if(sumT1 < 0){
+            sumT2 = sumT2 + sumT1 * -1;
+            sumT1 = 0;
+        }
+
+        if(sumT2 < 0){
+            sumT1 = sumT1 + sumT2 * -1;
+            sumT2 = 0;
+        }
+
+        // Matchpoints
+        if(sumT1 > sumT2){
+            result[tid1].matchPointsWon += 2;
+            result[tid2].matchPointsLost += 2;
+        }else if (sumT1 < sumT2) {
+            result[tid1].matchPointsLost += 2;
+            result[tid2].matchPointsWon += 2;
+        }else {
+            result[tid1].matchPointsWon += 1;
+            result[tid1].matchPointsLost += 1;
+            result[tid2].matchPointsWon += 1;
+            result[tid2].matchPointsLost += 1;
+        }
+
+        result[tid1].pointsWon += sumT1;
+        result[tid1].pointsLost += sumT2;
+
+        result[tid2].pointsWon += sumT2;
+        result[tid2].pointsLost += sumT1;
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save result in database
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QHash<int, resultData>::iterator i;
+    for(i = result.begin(); i != result.end(); i++){
+        QString rank = QString::number(i.value().rank);
+        QString matchPointsWon = QString::number(i.value().matchPointsWon);
+        QString matchPointsLost = QString::number(i.value().matchPointsLost);
+        QString pointsWon = QString::number(i.value().pointsWon);
+        QString pointsLost = QString::number(i.value().pointsLost);
+        QString quota = QString::number(i.value().quota);
+
+        // Calculate quota
+        if(i.value().pointsWon != 0 || i.value().pointsLost != 0){
+            if(i.value().pointsLost == 0){
+                quota = "Infinity";
+            }else{
+                quota = QString::number((double)i.value().pointsWon/i.value().pointsLost);
+            }
+        }
+
+        // Calculate rank
+
+
+        query.exec(tr("UPDATE teams SET rank='%1',match_points_won='%2',match_points_lost='%3',points_won='%4',points_lost='%5',quota='%6' WHERE event_name='%7' AND tid='%8'").arg(rank,matchPointsWon,matchPointsLost,pointsWon,pointsLost,quota,currentEvent,QString::number(i.key())));
+    }
 }
 
 void MainWindow::createIntermediateResultHtml()
