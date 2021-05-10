@@ -33,7 +33,7 @@ void Global::createDBifNotExists()
     query.exec("CREATE TABLE 'matches' ('event_name'	TEXT NOT NULL,'main_passage'	INTEGER NOT NULL,'tid_1'	INTEGER NOT NULL,'tid_2'	INTEGER NOT NULL,'passage'	INTEGER NOT NULL,'playground'	INTEGER NOT NULL,'start_tid'	INTEGER NOT NULL,'penalty_t1'	INTEGER,'penalty_t2'	INTEGER,'score_t1'	INTEGER,'score_t2'	INTEGER,PRIMARY KEY('event_name','main_passage','tid_1','tid_2'))");
 
     // Teams Table
-    query.exec("CREATE TABLE 'teams' ('event_name'	TEXT NOT NULL,'tid'	INTEGER NOT NULL,'team_name'	TEXT NOT NULL,'rank'	INTEGER,'match_points_won'	INTEGER,'match_points_lost'	INTEGER,'points_won'	INTEGER,'points_lost'	INTEGER,'quota'	REAL,PRIMARY KEY('event_name','tid','team_name'))");
+    query.exec("CREATE TABLE 'teams' ('event_name'	TEXT NOT NULL,'tid'	INTEGER NOT NULL,'team_name'	TEXT NOT NULL,'rank'	INTEGER,'match_points_won'	INTEGER,'match_points_lost'	INTEGER,'points_won'	INTEGER,'points_lost'	INTEGER,'quota'	REAL,'points_diff'	INTEGER, PRIMARY KEY('event_name','tid','team_name'))");
 }
 
 QString Global::matchClassToQString(matchClass mc)

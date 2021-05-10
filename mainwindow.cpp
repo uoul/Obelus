@@ -580,6 +580,7 @@ void MainWindow::createIntermediateResult()
         int pointsWon;
         int pointsLost;
         double quota;
+        int pointsDif;
     };
     QHash<int, resultData> result;
 
@@ -649,30 +650,58 @@ void MainWindow::createIntermediateResult()
     }
 
     //-------------------------------------------------------------------------------------------------------------------------------
-    // Save result in database
+    // Calculate quota & Points_dif
     //-------------------------------------------------------------------------------------------------------------------------------
     QHash<int, resultData>::iterator i;
     for(i = result.begin(); i != result.end(); i++){
-        QString rank = QString::number(i.value().rank);
+        if(i.value().pointsWon != 0 || i.value().pointsLost != 0){
+            if(i.value().pointsLost == 0){
+                i.value().quota = 99.0;
+            }else{
+                i.value().quota = (double)i.value().pointsWon/i.value().pointsLost;
+            }
+        }
+
+        i.value().pointsDif = i.value().pointsWon - i.value().pointsLost;
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save result in database
+    //-------------------------------------------------------------------------------------------------------------------------------
+    for(i = result.begin(); i != result.end(); i++){
         QString matchPointsWon = QString::number(i.value().matchPointsWon);
         QString matchPointsLost = QString::number(i.value().matchPointsLost);
         QString pointsWon = QString::number(i.value().pointsWon);
         QString pointsLost = QString::number(i.value().pointsLost);
         QString quota = QString::number(i.value().quota);
+        QString pointsDif = QString::number(i.value().pointsDif);
 
-        // Calculate quota
-        if(i.value().pointsWon != 0 || i.value().pointsLost != 0){
-            if(i.value().pointsLost == 0){
-                quota = "Infinity";
-            }else{
-                quota = QString::number((double)i.value().pointsWon/i.value().pointsLost);
-            }
+        // special case --> quota is infinit
+        if (quota == "99"){
+            quota = "∞";
         }
+        query.exec(tr("UPDATE teams SET match_points_won='%1',match_points_lost='%2',points_won='%3',points_lost='%4',quota='%5',points_diff='%6' WHERE event_name='%7' AND tid='%8'").arg(matchPointsWon,matchPointsLost,pointsWon,pointsLost,quota,pointsDif,currentEvent,QString::number(i.key())));
+    }
 
-        // Calculate rank
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Calculate rank
+    //-------------------------------------------------------------------------------------------------------------------------------
+    resultData d;
+    int currentRank = 1;
 
+    query.exec(tr("SELECT tid,match_points_won,quota,points_diff FROM teams WHERE event_name='%1' ORDER BY match_points_won DESC,quota DESC,points_diff DESC").arg(currentEvent));
+    while (query.next()) {
+        QSqlQuery q;
+        q.exec(tr("UPDATE teams SET rank='%1' WHERE event_name='%2' AND tid='%3'").arg(QString::number(currentRank),currentEvent,query.value("tid").toString()));
 
-        query.exec(tr("UPDATE teams SET rank='%1',match_points_won='%2',match_points_lost='%3',points_won='%4',points_lost='%5',quota='%6' WHERE event_name='%7' AND tid='%8'").arg(rank,matchPointsWon,matchPointsLost,pointsWon,pointsLost,quota,currentEvent,QString::number(i.key())));
+        if(d.matchPointsWon != query.value("match_points_won").toInt() || d.quota != query.value("quota").toDouble() || d.pointsDif != query.value("points_diff").toInt()){
+
+            d.matchPointsWon = query.value("match_points_won").toInt();
+            d.quota = query.value("quota").toDouble();
+            d.pointsDif = query.value("points_diff").toInt();
+
+            currentRank++;
+        }
     }
 }
 
