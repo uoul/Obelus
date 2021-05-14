@@ -11,6 +11,8 @@
 #include <QSqlQuery>
 #include <QTableWidgetItem>
 #include <QTableWidget>
+#include <QTextDocument>
+#include <QPrinter>
 
 //===============================================================================================================================
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -797,4 +799,43 @@ void MainWindow::on_pushButton_showIntermediateResult_clicked()
 {
     createIntermediateResultHtml();
     QDesktopServices::openUrl(QUrl(QDir::currentPath() + "/IntermediateResults/" + ui->listWidget_eventSelection->currentItem()->text().replace(" ","") + ".html"));
+}
+
+void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
+{
+    QString currentEvent = ui->listWidget_eventSelection->currentItem()->text();
+    QFile templateFile(":/templates/playgroundResultLogTemplate.html");
+
+    if (!templateFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+
+    MyTemplate templateSingleMatchTable(templateFile.readAll());
+    QHash<QString,QString> templateData;
+    QString html;
+
+    QSqlQuery query;
+    query.exec(tr("SELECT main_passage,tid_1,tid_2,passage,playground,start_tid FROM matches WHERE event_name='%1'").arg(currentEvent));
+
+    while (query.next()) {
+        // Fill TemplateData
+        templateData.clear();
+        templateData.insert("{event_name}", currentEvent);
+        templateData.insert("{passage}", query.value("passage").toString());
+
+        html += templateSingleMatchTable.render(templateData);
+    }
+
+    QTextDocument document;
+    document.setHtml(html);
+
+    QPrinter printer(QPrinter::PrinterResolution);
+    printer.setFullPage(true);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName("/media/lukas/DATA/Temp/neuesxxxxxxx.pdf");
+    printer.setPageMargins(QMarginsF(15, 15, 15, 15));
+
+    document.print(&printer);
+
+
 }

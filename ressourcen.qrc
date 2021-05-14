@@ -5,4 +5,7 @@
     <qresource prefix="/intermediateResult/Template">
         <file>IntermediatResultTableTemplate.html</file>
     </qresource>
+    <qresource prefix="/templates">
+        <file>playgroundResultLogTemplate.html</file>
+    </qresource>
 </RCC>

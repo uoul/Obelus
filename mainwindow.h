@@ -70,6 +70,8 @@ private slots:
 
     void on_pushButton_showIntermediateResult_clicked();
 
+    void on_pushButton_createPlaygroundResultsLog_clicked();
+
 private:
     Ui::MainWindow *ui;
     EventWindow* eventWindow;
