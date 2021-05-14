@@ -687,13 +687,14 @@ void MainWindow::createIntermediateResult()
     // Calculate rank
     //-------------------------------------------------------------------------------------------------------------------------------
     resultData d;
-    int currentRank = 1;
+    d.matchPointsWon = 0;
+    d.quota = 0.0;
+    d.pointsDif = 0;
+
+    int currentRank = 0;
 
     query.exec(tr("SELECT tid,match_points_won,quota,points_diff FROM teams WHERE event_name='%1' ORDER BY match_points_won DESC,quota DESC,points_diff DESC").arg(currentEvent));
     while (query.next()) {
-        QSqlQuery q;
-        q.exec(tr("UPDATE teams SET rank='%1' WHERE event_name='%2' AND tid='%3'").arg(QString::number(currentRank),currentEvent,query.value("tid").toString()));
-
         if(d.matchPointsWon != query.value("match_points_won").toInt() || d.quota != query.value("quota").toDouble() || d.pointsDif != query.value("points_diff").toInt()){
 
             d.matchPointsWon = query.value("match_points_won").toInt();
@@ -702,6 +703,9 @@ void MainWindow::createIntermediateResult()
 
             currentRank++;
         }
+
+        QSqlQuery q;
+        q.exec(tr("UPDATE teams SET rank='%1' WHERE event_name='%2' AND tid='%3'").arg(QString::number(currentRank),currentEvent,query.value("tid").toString()));
     }
 }
 
