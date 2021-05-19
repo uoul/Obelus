@@ -13,6 +13,7 @@
 #include <QTableWidget>
 #include <QTextDocument>
 #include <QPrinter>
+#include <QFileDialog>
 
 //===============================================================================================================================
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -818,24 +819,51 @@ void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
     query.exec(tr("SELECT main_passage,tid_1,tid_2,passage,playground,start_tid FROM matches WHERE event_name='%1'").arg(currentEvent));
 
     while (query.next()) {
+        QString team_name_1;
+        QString team_name_2;
+
+        QSqlQuery q;
+        q.exec(tr("SELECT team_name FROM teams WHERE event_name='%1' AND tid='%2'").arg(currentEvent,query.value("tid_1").toString()));
+        if(q.next()){
+            team_name_1 = q.value("team_name").toString();
+        }
+        q.exec(tr("SELECT team_name FROM teams WHERE event_name='%1' AND tid='%2'").arg(currentEvent,query.value("tid_2").toString()));
+        if(q.next()){
+            team_name_2 = q.value("team_name").toString();
+        }
+
         // Fill TemplateData
         templateData.clear();
         templateData.insert("{event_name}", currentEvent);
         templateData.insert("{passage}", query.value("passage").toString());
+        templateData.insert("{playground}", query.value("playground").toString());
+        templateData.insert("{start_tid}", query.value("start_tid").toString());
+        templateData.insert("{teamname_1}", team_name_1);
+        templateData.insert("{teamname_2}", team_name_2);
+        templateData.insert("{beginner}", team_name_1);
 
         html += templateSingleMatchTable.render(templateData);
     }
 
+    // Get output Filepath
+    QString filename = QFileDialog::getSaveFileName(this,tr("Save PDF(*.pdf)"), "", tr("PDF-File (*.pdf *.PDF)"));
+    if (filename.isEmpty()){
+        QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
+        return;
+    }
+
     QTextDocument document;
     document.setHtml(html);
+    QPageSize s;
 
-    QPrinter printer(QPrinter::PrinterResolution);
-    printer.setFullPage(true);
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName("/media/lukas/DATA/Temp/neuesxxxxxxx.pdf");
-    printer.setPageMargins(QMarginsF(15, 15, 15, 15));
+    QPrinter *printer = new QPrinter(QPrinter::HighResolution);
+    printer->setFullPage(true);
+    printer->setOutputFormat(QPrinter::PdfFormat);
+    printer->setOutputFileName(filename);
+    printer->setPageSize(s);
+    printer->setPageMargins(QMarginsF(0, 0, 0, 0));
 
-    document.print(&printer);
-
+    document.print(printer);
+    delete printer;
 
 }

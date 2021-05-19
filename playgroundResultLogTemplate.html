@@ -1,14 +1,15 @@
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  overflow:hidden;padding:10px 20px;word-break:normal;}
-.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:10pt;
+  overflow:hidden;padding:5px 10px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:12pt;
   font-weight:normal;overflow:hidden;padding:10px 20px;word-break:normal;}
 .tg .tg-0lax{text-align:left;vertical-align:top}
 .tg .tg-hvas{font-size:xx-small;text-align:left;vertical-align:top}
 
 table { page-break-inside:avoid;
-	width: 90%;
+        white-space: nowrap;
+        width: 100%;
 	margin-left: auto;
   	margin-right: auto;
 }
@@ -22,11 +23,11 @@ tfoot { display:table-footer-group }
         height: 29.7cm;
         /*margin: 30mm 45mm 30mm 45mm; */
         /* change the margins as you want them to be. */
-   } 
+   }
 }
 
 </style>
-<table class="tg">
+<table class="tg" width=100%>
 <thead>
   <tr>
     <th class="tg-0lax" colspan="14">{event_name}</th>
@@ -34,8 +35,8 @@ tfoot { display:table-footer-group }
 </thead>
 <tbody>
   <tr>
-    <td class="tg-0lax" colspan="5">{passage}</td>
-    <td class="tg-0lax" colspan="2">{playground}</td>
+    <td class="tg-0lax" colspan="5">Duchgang: {passage}</td>
+    <td class="tg-0lax" colspan="2">Bahn: {playground}</td>
     <td class="tg-0lax" colspan="7">Beginn: {beginner}</td>
   </tr>
   <tr>
