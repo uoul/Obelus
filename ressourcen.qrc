@@ -7,5 +7,6 @@
     </qresource>
     <qresource prefix="/templates">
         <file>playgroundResultLogTemplate.html</file>
+        <file>StartListTemplate.html</file>
     </qresource>
 </RCC>

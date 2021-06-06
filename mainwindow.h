@@ -72,6 +72,8 @@ private slots:
 
     void on_pushButton_createPlaygroundResultsLog_clicked();
 
+    void on_pushButton_createStartList_clicked();
+
 private:
     Ui::MainWindow *ui;
     EventWindow* eventWindow;

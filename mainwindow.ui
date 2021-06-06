@@ -586,9 +586,23 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_createStartList">
+            <property name="text">
+             <string>Startliste erstellen</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushButton_createPlaygroundResultsLog">
             <property name="text">
              <string>Bahnblöcke erstellen</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_createTeamMatchPlan">
+            <property name="text">
+             <string>Mannschaftsstreifen erstellen</string>
             </property>
            </widget>
           </item>

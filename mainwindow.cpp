@@ -867,3 +867,76 @@ void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
     delete printer;
 
 }
+
+void MainWindow::on_pushButton_createStartList_clicked()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->listWidget_eventSelection->currentItem()->text().isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Init.
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString currentEvent = ui->listWidget_eventSelection->currentItem()->text();
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Create HTML Rows
+    //-------------------------------------------------------------------------------------------------------------------------------
+    MyTemplate rowTemplate("<tr><td class='tg-0lax'>{tid}</td><td class='tg-0lax'>{team_name}</td></tr>");
+    QString rowsHtml;
+
+    QSqlQuery query;
+    query.exec(tr("SELECT tid,team_name FROM teams WHERE event_name='%1' ORDER BY tid").arg(currentEvent));
+
+    while (query.next()) {
+        QHash<QString,QString> h;
+        h.insert("{tid}",query.value("tid").toString());
+        h.insert("{team_name}",query.value("team_name").toString());
+        rowsHtml += rowTemplate.render(h);
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Read Template
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QFile f(":/templates/StartListTemplate.html");
+    if(!f.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+
+    MyTemplate htmlTemplate(f.readAll());
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Render Template
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QHash<QString,QString> h;
+
+    h.insert("{rows}",rowsHtml);
+    h.insert("{event_name}",currentEvent);
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save as pdf
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString filename = QFileDialog::getSaveFileName(this,tr("Save PDF(*.pdf)"), "", tr("PDF-File (*.pdf *.PDF)"));
+    if (filename.isEmpty()){
+        QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
+        return;
+    }
+
+    QTextDocument document;
+    document.setHtml(htmlTemplate.render(h));
+    QPageSize s;
+
+    QPrinter *printer = new QPrinter(QPrinter::PrinterResolution);
+    printer->setFullPage(true);
+    printer->setOutputFormat(QPrinter::PdfFormat);
+    printer->setOutputFileName(filename);
+    printer->setPageSize(s);
+    printer->setPageMargins(QMarginsF(0, 0, 0, 0));
+
+    document.print(printer);
+    delete printer;
+}
