@@ -715,17 +715,17 @@ void MainWindow::createIntermediateResult()
 void MainWindow::createIntermediateResultHtml()
 {
     //-------------------------------------------------------------------------------------------------------------------------------
-    // init.
-    //-------------------------------------------------------------------------------------------------------------------------------
-    QString selectedEvent = ui->listWidget_eventSelection->currentItem()->text();
-
-    //-------------------------------------------------------------------------------------------------------------------------------
     // Check validity
     //-------------------------------------------------------------------------------------------------------------------------------
-    if(ui->listWidget_eventSelection->currentItem()->text().isEmpty()){
+    if(ui->listWidget_eventSelection->selectedItems().isEmpty()){
         QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
         return;
     }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // init.
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString selectedEvent = ui->listWidget_eventSelection->currentItem()->text();
 
     //-------------------------------------------------------------------------------------------------------------------------------
     // Update Result
@@ -798,12 +798,28 @@ void MainWindow::createIntermediateResultHtml()
 
 void MainWindow::on_pushButton_showIntermediateResult_clicked()
 {
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->listWidget_eventSelection->selectedItems().isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
+
     createIntermediateResultHtml();
     QDesktopServices::openUrl(QUrl(QDir::currentPath() + "/IntermediateResults/" + ui->listWidget_eventSelection->currentItem()->text().replace(" ","") + ".html"));
 }
 
 void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
 {
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->listWidget_eventSelection->selectedItems().isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
+
     QString currentEvent = ui->listWidget_eventSelection->currentItem()->text();
     QFile templateFile(":/templates/playgroundResultLogTemplate.html");
 
@@ -873,7 +889,7 @@ void MainWindow::on_pushButton_createStartList_clicked()
     //-------------------------------------------------------------------------------------------------------------------------------
     // Check validity
     //-------------------------------------------------------------------------------------------------------------------------------
-    if(ui->listWidget_eventSelection->currentItem()->text().isEmpty()){
+    if(ui->listWidget_eventSelection->selectedItems().isEmpty()){
         QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
         return;
     }
@@ -928,6 +944,135 @@ void MainWindow::on_pushButton_createStartList_clicked()
 
     QTextDocument document;
     document.setHtml(htmlTemplate.render(h));
+    QPageSize s;
+
+    QPrinter *printer = new QPrinter(QPrinter::PrinterResolution);
+    printer->setFullPage(true);
+    printer->setOutputFormat(QPrinter::PdfFormat);
+    printer->setOutputFileName(filename);
+    printer->setPageSize(s);
+    printer->setPageMargins(QMarginsF(0, 0, 0, 0));
+
+    document.print(printer);
+    delete printer;
+}
+
+void MainWindow::on_pushButton_createTeamMatchPlan_clicked()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->listWidget_eventSelection->selectedItems().isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Init.
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString currentEvent = ui->listWidget_eventSelection->currentItem()->text();
+    QString html;
+    QSqlQuery query;
+    int max_passage = 0;
+    int max_mainPassage = 0;
+
+    // get max_passage
+    query.exec(tr("SELECT MAX(main_passage) AS max_main_passage FROM matches WHERE event_name='%1'").arg(currentEvent));
+    if(query.next()){
+        max_mainPassage = query.value("max_main_passage").toInt();
+    }else{
+        qCritical() << "Error finding max_passage!";
+    }
+
+    // get max_passage
+    query.exec(tr("SELECT MAX(passage) AS max_passage FROM matches WHERE event_name='%1'").arg(currentEvent));
+    if(query.next()){
+        max_passage = query.value("max_passage").toInt();
+    }else{
+        qCritical() << "Error finding max_passage!";
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Create HTML
+    //-------------------------------------------------------------------------------------------------------------------------------
+
+    // Create Rows for all Passages
+    query.exec(tr("SELECT tid,team_name FROM teams WHERE event_name='%1' ORDER BY tid").arg(currentEvent));
+    while (query.next()) {
+        // Init.
+        QString currentTid = query.value("tid").toString();
+        QString currentTeamName = query.value("team_name").toString();
+        QString rowsHtml;
+        MyTemplate rowTemplate("<tr><td class='tg-0pky'>{main_passage}/{passage}</td><td class='tg-0pky'>{playground}</td><td class='tg-0pky'>{beginner}</td><td class='tg-0pky'>{enemy}</td><td class='tg-0lax'></td><td class='tg-0lax'></td></tr>");
+
+        // Create all Rows for all passages
+        for(int mp = 1; mp <= max_mainPassage; mp++){
+            for(int p = 1; p <= max_passage; p++){
+                QHash<QString,QString> h;
+                QString strMp = QString::number(mp);
+                QString strP = QString::number(p);
+                QSqlQuery q1;
+                QSqlQuery q2;
+
+                h.insert("{main_passage}",strMp);
+                h.insert("{passage}",strP);
+
+                q1.exec(tr("SELECT playground,start_tid,tid_1,tid_2 FROM matches WHERE event_name='%1' AND main_passage='%2' AND passage='%3' AND (tid_1='%4' OR tid_2='%4')").arg(currentEvent,QString::number(mp),QString::number(p),currentTid));
+
+                if(q1.next()){
+                    h.insert("{playground}",q1.value("playground").toString());
+                    h.insert("{beginner}",q1.value("start_tid").toString());
+                    if(q1.value("tid_1").toInt() == query.value("tid").toInt()){
+                        q2.exec(tr("SELECT team_name FROM teams WHERE event_name='%1' AND tid='%2'").arg(currentEvent,q1.value("tid_2").toString()));
+                        if(q2.next()){
+                            h.insert("{enemy}",q2.value("team_name").toString());
+                        }
+
+                    }else if(q1.value("tid_2").toInt() == query.value("tid").toInt()){
+                        q2.exec(tr("SELECT team_name FROM teams WHERE event_name='%1' AND tid='%2'").arg(currentEvent,q1.value("tid_1").toString()));
+                        if(q2.next()){
+                            h.insert("{enemy}",q2.value("team_name").toString());
+                        }
+                    }
+                }else{
+                    h.insert("{playground}","");
+                    h.insert("{beginner}","");
+                    h.insert("{enemy}","--- PAUSE --- PAUSE --- PAUSE ---");
+                }
+                rowsHtml += rowTemplate.render(h);
+            }
+        }
+
+        // Load Template and render
+        QFile f(":/templates/TeamMatchPlanTemplate.html");
+        if(!f.open(QIODevice::ReadOnly | QIODevice::Text)){
+            return;
+        }
+
+        MyTemplate htmlTemplate(f.readAll());
+
+        QHash<QString,QString> h;
+
+        h.insert("{event_name}",currentEvent);
+        h.insert("{tid}",currentTid);
+        h.insert("{team_name}",currentTeamName);
+        h.insert("{rows}",rowsHtml);
+
+        html += htmlTemplate.render(h);
+
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save as pdf
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString filename = QFileDialog::getSaveFileName(this,tr("Save PDF(*.pdf)"), "", tr("PDF-File (*.pdf *.PDF)"));
+    if (filename.isEmpty()){
+        QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
+        return;
+    }
+
+    QTextDocument document;
+    document.setHtml(html);
     QPageSize s;
 
     QPrinter *printer = new QPrinter(QPrinter::PrinterResolution);

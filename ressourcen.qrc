@@ -8,5 +8,6 @@
     <qresource prefix="/templates">
         <file>playgroundResultLogTemplate.html</file>
         <file>StartListTemplate.html</file>
+        <file>TeamMatchPlanTemplate.html</file>
     </qresource>
 </RCC>
