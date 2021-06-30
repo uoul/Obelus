@@ -127,7 +127,12 @@ void EventWindow::on_commandLinkButton_create_clicked()
             tid2 = QString::number(currentMatch.second);
             passage = QString::number(tpassage);
             playground = QString::number(pg);
-            startTid = QString::number(currentMatch.first);
+
+            if(mp % 2 == 0){
+                startTid = tid1;
+            } else {
+                startTid = tid2;
+            }
 
             currentMatch = s.getNextMatch();
             pg++;
