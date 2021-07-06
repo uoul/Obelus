@@ -851,7 +851,7 @@ void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
         // Fill TemplateData
         templateData.clear();
         templateData.insert("{event_name}", currentEvent);
-        templateData.insert("{passage}", query.value("passage").toString());
+        templateData.insert("{passage}", query.value("main_passage").toString() + "/" + query.value("passage").toString());
         templateData.insert("{playground}", query.value("playground").toString());
         templateData.insert("{start_tid}", query.value("start_tid").toString());
         templateData.insert("{teamname_1}", team_name_1);
