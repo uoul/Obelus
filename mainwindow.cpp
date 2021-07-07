@@ -884,6 +884,7 @@ void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
 
     document.print(printer);
     delete printer;
+    QMessageBox::information(this, tr("Info"), "Bahnblöcke wurde erstellt: " + filename, QMessageBox::Ok);
 
 }
 
@@ -961,6 +962,7 @@ void MainWindow::on_pushButton_createStartList_clicked()
 
     document.print(printer);
     delete printer;
+    QMessageBox::information(this, tr("Info"), "Startliste wurde erstellt: " + filename, QMessageBox::Ok);
 }
 
 void MainWindow::on_pushButton_createTeamMatchPlan_clicked()
@@ -1093,6 +1095,7 @@ void MainWindow::on_pushButton_createTeamMatchPlan_clicked()
 
     document.print(printer);
     delete printer;
+    QMessageBox::information(this, tr("Info"), "Mannschaftsstreifen wurde erstellt: " + filename, QMessageBox::Ok);
 }
 
 void MainWindow::on_pushButton_createResultList_clicked()
@@ -1212,6 +1215,6 @@ void MainWindow::on_pushButton_createResultList_clicked()
 
     document.print(printer);
     delete printer;
-
+    QMessageBox::information(this, tr("Info"), resultType + " wurde erstellt: " + filename, QMessageBox::Ok);
 }
 
