@@ -867,6 +867,9 @@ void MainWindow::on_pushButton_createPlaygroundResultsLog_clicked()
         QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
         return;
     }
+    if (!filename.toLower().endsWith(".pdf")){
+        filename = filename + ".pdf";
+    }
 
     QTextDocument document;
     document.setHtml(html);
@@ -940,6 +943,9 @@ void MainWindow::on_pushButton_createStartList_clicked()
     if (filename.isEmpty()){
         QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
         return;
+    }
+    if (!filename.toLower().endsWith(".pdf")){
+        filename = filename + ".pdf";
     }
 
     QTextDocument document;
@@ -1070,6 +1076,9 @@ void MainWindow::on_pushButton_createTeamMatchPlan_clicked()
         QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
         return;
     }
+    if (!filename.toLower().endsWith(".pdf")){
+        filename = filename + ".pdf";
+    }
 
     QTextDocument document;
     document.setHtml(html);
@@ -1085,3 +1094,124 @@ void MainWindow::on_pushButton_createTeamMatchPlan_clicked()
     document.print(printer);
     delete printer;
 }
+
+void MainWindow::on_pushButton_createResultList_clicked()
+{
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check validity
+    //-------------------------------------------------------------------------------------------------------------------------------
+    if(ui->listWidget_eventSelection->selectedItems().isEmpty()){
+        QMessageBox::warning(this, tr("Warnung"), tr("Keine Veranstaltung ausgewählt!"));
+        return;
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // init.
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString selectedEvent = ui->listWidget_eventSelection->currentItem()->text();
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Update Result
+    //-------------------------------------------------------------------------------------------------------------------------------
+    createIntermediateResult();
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Create Result Table
+    //-------------------------------------------------------------------------------------------------------------------------------
+    MyTemplate rowTemplate("<tr><td class='tg-0lax'>{rank}</td><td class='tg-0lax'>{teamName}</td><td class='tg-0lax'>{matchPointsWon}:{matchPointsLost}</td><td class='tg-0lax'>{pointsWon}:{pointsLost}</td><td class='tg-0lax'>{quota}</td></tr>");
+    QString rowsHtml = "";
+    QSqlQuery query;
+
+    query.exec(tr("SELECT team_name,rank,match_points_won,match_points_lost,points_won,points_lost,quota FROM teams WHERE event_name='%1' ORDER BY rank").arg(selectedEvent));
+
+    while(query.next()){
+        QString teamName = query.value(0).toString();
+        QString rank = query.value(1).toString();
+        QString matchPointsWon = query.value(2).toString();
+        QString matchPointsLost = query.value(3).toString();
+        QString pointsWon = query.value(4).toString();
+        QString pointsLost = query.value(5).toString();
+        QString quota = query.value(6).toString();
+
+        QHash<QString,QString> h;
+
+        h.insert("{teamName}", teamName);
+        h.insert("{rank}", rank);
+        h.insert("{matchPointsWon}", matchPointsWon);
+        h.insert("{matchPointsLost}", matchPointsLost);
+        h.insert("{pointsWon}", pointsWon);
+        h.insert("{pointsLost}", pointsLost);
+        h.insert("{quota}", quota);
+
+        rowsHtml = rowsHtml + rowTemplate.render(h);
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Check if event is finished
+    //-------------------------------------------------------------------------------------------------------------------------------
+    query.exec(tr("SELECT COUNT(*) as matches_overall FROM matches WHERE event_name='%1'").arg(selectedEvent));
+    if(!query.next()){
+        return;
+    }
+    int matchesOverall = query.value("matches_overall").toInt();
+
+    query.exec(tr("SELECT COUNT(*) as matches_finished FROM matches WHERE event_name='%1' AND score_t1<>'' AND score_t2<>''").arg(selectedEvent));
+    if(!query.next()){
+        return;
+    }
+    int matchesFinished = query.value("matches_finished").toInt();
+
+    QString resultType;
+
+    if(matchesFinished >= matchesOverall){
+        resultType = "Endergebnisliste";
+    }else{
+        resultType = "Zwischenergebnisliste";
+    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Read Template
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QFile f(":/templates/resultListTemplate.html");
+    if(!f.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+
+    MyTemplate tableTemplate(f.readAll());
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Render Template
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QHash<QString,QString> h;
+    h.insert("{result_type}",resultType);
+    h.insert("{event_name}",selectedEvent);
+    h.insert("{rows}",rowsHtml);
+
+    //-------------------------------------------------------------------------------------------------------------------------------
+    // Save as pdf
+    //-------------------------------------------------------------------------------------------------------------------------------
+    QString filename = QFileDialog::getSaveFileName(this,tr("Save PDF(*.pdf)"), "", tr("PDF-File (*.pdf *.PDF)"));
+    if (filename.isEmpty()){
+        QMessageBox::information(this, tr("Info"), "Keine Ausgabedatei ausgewählt!", QMessageBox::Ok);
+        return;
+    }
+    if (!filename.toLower().endsWith(".pdf")){
+        filename = filename + ".pdf";
+    }
+
+    QTextDocument document;
+    document.setHtml(tableTemplate.render(h));
+    QPageSize s;
+
+    QPrinter *printer = new QPrinter(QPrinter::PrinterResolution);
+    printer->setFullPage(true);
+    printer->setOutputFormat(QPrinter::PdfFormat);
+    printer->setOutputFileName(filename);
+    printer->setPageSize(s);
+    printer->setPageMargins(QMarginsF(0, 0, 0, 0));
+
+    document.print(printer);
+    delete printer;
+
+}
+

@@ -76,6 +76,8 @@ private slots:
 
     void on_pushButton_createTeamMatchPlan_clicked();
 
+    void on_pushButton_createResultList_clicked();
+
 private:
     Ui::MainWindow *ui;
     EventWindow* eventWindow;
