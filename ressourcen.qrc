@@ -9,5 +9,6 @@
         <file>playgroundResultLogTemplate.html</file>
         <file>StartListTemplate.html</file>
         <file>TeamMatchPlanTemplate.html</file>
+        <file>resultListTemplate.html</file>
     </qresource>
 </RCC>
